@@ -1,8 +1,8 @@
 # researchpanel_ngo
 
-A website where researchers upload research and a panel approves or rejects it with comments.
+A web platform that enables researchers to submit their work for formal evaluation by a designated review panel. Panel members assess each submission and record a decision to approve or reject it, accompanied by written feedback.
 
-(Working name in the app: ResearchReview.)
+The application currently operates under the working title *ResearchReview*.
 
 - **Frontend:** Next.js 16 (App Router) + Tailwind CSS v4: `frontend/`
 - **Backend:** Python FastAPI + SQLAlchemy + SQLite, JWT auth: `backend/`
