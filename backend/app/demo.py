@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .models import Decision, Review, Role, Submission, SubmissionStatus, User
-from .security import hash_password
+from .security import hash_password, verify_password
 
 USERS = [
     ("Ada Researcher", "researcher@demo.com", Role.researcher),
@@ -57,3 +57,19 @@ def seed_demo(db: Session, password: str) -> list[tuple[str, Role]]:
         db.commit()
 
     return [(email, role) for _, email, role in USERS]
+
+
+def sync_demo_passwords(db: Session, password: str) -> int:
+    """Make every demo account use `password`, so DEMO_PASSWORD is always the source of truth.
+
+    Returns how many accounts were updated. Only touches the fixed demo emails, never real users.
+    """
+    emails = [email for _, email, _ in USERS]
+    updated = 0
+    for user in db.scalars(select(User).where(User.email.in_(emails))):
+        if not verify_password(password, user.password_hash):
+            user.password_hash = hash_password(password)
+            updated += 1
+    if updated:
+        db.commit()
+    return updated

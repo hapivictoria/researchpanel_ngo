@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from .config import settings
 from .database import Base, SessionLocal, engine
-from .demo import seed_demo
+from .demo import seed_demo, sync_demo_passwords
 from .models import User
 from .routers import auth, submissions
 
@@ -14,11 +14,14 @@ from .routers import auth, submissions
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     Base.metadata.create_all(bind=engine)
-    # On a fresh deployment, create demo data when DEMO_PASSWORD is configured.
+    # When DEMO_PASSWORD is configured: create demo data on a fresh database, and keep the
+    # demo accounts' passwords in line with it (so changing DEMO_PASSWORD + redeploying works).
     if settings.demo_password:
         with SessionLocal() as db:
             if db.scalar(select(User).limit(1)) is None:
                 seed_demo(db, settings.demo_password)
+            else:
+                sync_demo_passwords(db, settings.demo_password)
     yield
 
 
