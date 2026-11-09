@@ -74,13 +74,6 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
           )}
         </p>
       </div>
-
-      {isLogin && (
-        <div className="mt-4 rounded-xl border border-dashed border-slate-300 p-4 text-xs text-slate-500">
-          <p className="font-medium text-slate-600">Demo accounts (password: demo1234)</p>
-          <p className="mt-1">researcher@demo.com · panel@demo.com · panel2@demo.com</p>
-        </div>
-      )}
     </div>
   );
 }

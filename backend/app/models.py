@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import DateTime, Enum, ForeignKey, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -50,8 +50,11 @@ class Submission(Base):
     abstract: Mapped[str] = mapped_column(Text)
     authors: Mapped[str] = mapped_column(String(500))
     keywords: Mapped[str] = mapped_column(String(500), default="")
-    file_name: Mapped[str] = mapped_column(String(300))   # original name shown to users
-    stored_name: Mapped[str] = mapped_column(String(300))  # name on disk
+    file_name: Mapped[str] = mapped_column(String(300))  # original name shown to users
+    file_type: Mapped[str] = mapped_column(String(100), default="application/octet-stream")
+    # Stored in the database (not on disk) so files survive restarts on free hosts with ephemeral disks.
+    # deferred: only loaded when the file itself is requested, never in lists.
+    file_data: Mapped[bytes] = mapped_column(LargeBinary, deferred=True)
     status: Mapped[SubmissionStatus] = mapped_column(
         Enum(SubmissionStatus), default=SubmissionStatus.pending, index=True
     )

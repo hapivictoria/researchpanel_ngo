@@ -86,7 +86,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   try {
     res = await fetch(`${API_URL}${path}`, { ...init, headers });
   } catch {
-    throw new ApiError(0, "Cannot reach the server. Is the backend running?");
+    throw new ApiError(0, "Cannot reach the server. It may be waking up, which can take up to a minute. Please try again.");
   }
 
   if (!res.ok) {

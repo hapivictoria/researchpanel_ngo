@@ -5,7 +5,9 @@ A web platform that enables researchers to submit their work for formal evaluati
 The application currently operates under the working title *ResearchReview*.
 
 - **Frontend:** Next.js 16 (App Router) + Tailwind CSS v4: `frontend/`
-- **Backend:** Python FastAPI + SQLAlchemy + SQLite, JWT auth: `backend/`
+- **Backend:** Python FastAPI + SQLAlchemy, JWT auth: `backend/` (SQLite locally, Postgres in production)
+
+To put it online for free, see [DEPLOY.md](DEPLOY.md).
 
 ## Run it
 
@@ -30,7 +32,7 @@ npm run dev
 
 Open http://localhost:3000. Set `NEXT_PUBLIC_API_URL` if the API is not on `localhost:8000`.
 
-To reset demo data: delete `backend/research.db` and `backend/uploads/`, then run `seed.py` again.
+To reset demo data: delete `backend/research.db`, then run `seed.py` again.
 
 ## Demo accounts 
 
@@ -63,11 +65,10 @@ Both thresholds default to 1 (one panelist decides). Set them in `backend/.env` 
 | GET    | `/api/submissions/{id}/file`      | owner / panel  |
 | POST   | `/api/submissions/{id}/reviews`   | panel / admin  |
 
-Uploads accept PDF and Word files up to 20 MB and are stored in `backend/uploads/`.
+Uploads accept PDF and Word files up to 20 MB and are stored in the database, so they survive restarts on free hosting.
 
 ## Before production
 
-- Set a strong `JWT_SECRET` in `backend/.env`
-- Move from SQLite to Postgres (`DATABASE_URL`) and add migrations (Alembic)
-- Store files in object storage (for example S3) instead of local disk
+- Add database migrations (Alembic) so schema changes don't require a reset
+- Store files in object storage (for example S3) once volumes grow
 - Add an admin screen for managing panel members

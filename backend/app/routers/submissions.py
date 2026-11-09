@@ -1,8 +1,7 @@
-import uuid
 from pathlib import Path
+from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
@@ -15,7 +14,11 @@ from ..security import get_current_user, require_panel
 
 router = APIRouter(prefix="/api/submissions", tags=["submissions"])
 
-ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx"}
+ALLOWED_EXTENSIONS = {
+    ".pdf": "application/pdf",
+    ".doc": "application/msword",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
 
 
 def _is_panel(user: User) -> bool:
@@ -108,16 +111,14 @@ async def create_submission(
     if len(content) > settings.max_upload_mb * 1024 * 1024:
         raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, f"File exceeds {settings.max_upload_mb} MB")
 
-    stored = f"{uuid.uuid4().hex}{ext}"
-    (settings.upload_dir / stored).write_bytes(content)
-
     sub = Submission(
         title=title.strip(),
         abstract=abstract.strip(),
         authors=authors.strip(),
         keywords=keywords.strip(),
         file_name=original,
-        stored_name=stored,
+        file_type=ALLOWED_EXTENSIONS[ext],
+        file_data=content,
         submitter_id=user.id,
     )
     db.add(sub)
@@ -136,10 +137,11 @@ def get_submission(submission_id: int, user: User = Depends(get_current_user), d
 @router.get("/{submission_id}/file")
 def download_file(submission_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     sub = _get_visible(db, submission_id, user)
-    path = settings.upload_dir / sub.stored_name
-    if not path.exists():
+    data = sub.file_data  # deferred column: loaded only here
+    if not data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "File missing on server")
-    return FileResponse(path, filename=sub.file_name)
+    disposition = f"inline; filename*=UTF-8''{quote(sub.file_name)}"
+    return Response(content=data, media_type=sub.file_type, headers={"Content-Disposition": disposition})
 
 
 @router.post("/{submission_id}/reviews", response_model=SubmissionDetail, status_code=status.HTTP_201_CREATED)
