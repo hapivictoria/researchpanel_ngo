@@ -32,15 +32,9 @@ Open http://localhost:3000. Set `NEXT_PUBLIC_API_URL` if the API is not on `loca
 
 To reset demo data: delete `backend/research.db` and `backend/uploads/`, then run `seed.py` again.
 
-## Demo accounts (password `demo1234`)
+## Demo accounts 
 
-| Role       | Email               |
-|------------|---------------------|
-| Researcher | researcher@demo.com |
-| Researcher | grace@demo.com      |
-| Panel      | panel@demo.com      |
-| Panel      | panel2@demo.com     |
-| Admin      | admin@demo.com      |
+Contact the developer for a set of username and password
 
 Public registration always creates **researcher** accounts. Panel and admin accounts come from `seed.py` for now.
 
