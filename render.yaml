@@ -11,7 +11,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.2
+        value: 3.11.13
       - key: JWT_SECRET
         generateValue: true
       - key: DATABASE_URL # Neon connection string (postgresql://...)
