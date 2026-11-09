@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     # When set, demo accounts and sample papers are created on startup (if the DB has no users).
     demo_password: str | None = None
 
+    @field_validator("demo_password")
+    @classmethod
+    def strip_demo_password(cls, v: str | None) -> str | None:
+        # Dashboard text areas can add a stray space or line break when pasting; ignore them.
+        v = v.strip() if v else v
+        return v or None
+
     @field_validator("database_url")
     @classmethod
     def use_psycopg_driver(cls, v: str) -> str:

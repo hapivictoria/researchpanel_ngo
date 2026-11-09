@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -10,6 +11,8 @@ from .demo import seed_demo, sync_demo_passwords
 from .models import User
 from .routers import auth, submissions
 
+log = logging.getLogger("uvicorn.error")
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -20,8 +23,13 @@ async def lifespan(_: FastAPI):
         with SessionLocal() as db:
             if db.scalar(select(User).limit(1)) is None:
                 seed_demo(db, settings.demo_password)
+                log.info("Demo data created (DEMO_PASSWORD length %d).", len(settings.demo_password))
             else:
-                sync_demo_passwords(db, settings.demo_password)
+                updated = sync_demo_passwords(db, settings.demo_password)
+                log.info("Demo passwords checked: %d account(s) updated (DEMO_PASSWORD length %d).",
+                         updated, len(settings.demo_password))
+    else:
+        log.info("DEMO_PASSWORD not set; demo accounts left unchanged.")
     yield
 
 
