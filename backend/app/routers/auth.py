@@ -1,13 +1,17 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ..config import settings
 from ..database import get_db
 from ..models import Role, User
 from ..schemas import LoginIn, RegisterIn, TokenOut, UserOut
 from ..security import create_access_token, get_current_user, hash_password, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+log = logging.getLogger("uvicorn.error")
 
 
 @router.post("/register", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
@@ -27,6 +31,15 @@ def register(data: RegisterIn, db: Session = Depends(get_db)):
 def login(data: LoginIn, db: Session = Depends(get_db)):
     user = db.scalar(select(User).where(User.email == data.email.lower()))
     if not user or not verify_password(data.password, user.password_hash):
+        # TEMPORARY diagnostics for demo sign-in trouble: lengths and yes/no only, never the password.
+        demo = settings.demo_password
+        log.info(
+            "Login failed: user_found=%s role=%s received_len=%d stripped_matches=%s "
+            "equals_DEMO_PASSWORD=%s DEMO_PASSWORD_len=%s",
+            bool(user), user.role.value if user else None, len(data.password),
+            bool(user) and verify_password(data.password.strip(), user.password_hash),
+            demo is not None and data.password == demo, len(demo) if demo else None,
+        )
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
     return TokenOut(access_token=create_access_token(user), user=UserOut.model_validate(user))
 
