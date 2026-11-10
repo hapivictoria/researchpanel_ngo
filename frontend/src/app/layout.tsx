@@ -33,7 +33,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Suspense fallback={<p className="py-24 text-center text-sm text-slate-500">Loading…</p>}>{children}</Suspense>
           </main>
           <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-            developed by joyvictoria · 2026 · demo build 
+            developed by{" "}
+            <a
+              href="https://www.joyvictoria.dev/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-indigo-600 hover:underline"
+            >
+              joyvictoria
+            </a>{" "}
+            · 2026 · demo build
           </footer>
         </AuthProvider>
       </body>
